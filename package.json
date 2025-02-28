@@ -1,3 +1,4 @@
+
 {
   "name": "foosball-elo-web",
   "version": "1.0.0",
@@ -5,7 +6,9 @@
   "scripts": {
     "start": "http-server src -o -c-1"
   },
-  "dependencies": {},
+  "dependencies": {
+    "firebase": "^10.8.0"
+  },
   "devDependencies": {
     "http-server": "^14.1.1"
   },
