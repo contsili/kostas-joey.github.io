@@ -7,7 +7,8 @@ const playerRatingInput = document.getElementById('player-rating');
 const teamMatchCheckbox = document.getElementById('team-match');
 const logMatchButton = document.getElementById('log-match');
 
-const scriptURL = "https://script.google.com/macros/s/AKfycby8jLXYjWKykMSziMnCPZbDenNdCd2e2MxEYrgRRrD0jEQlU0oFPwjl8ASOMIb-3ONx/exec"; // Replace with your Google Apps Script URL
+const scriptURL = "https://script.google.com/macros/s/AKfycbwj4XnUFgi0W82TMN819j-KNO7cOKgx61Vn_ZSqDprndLSrmo4SSWvKjNcNufKbAAL0/exec"; // Replace with your Google Apps Script URL
+
 let playerRatings = {};
 
 async function init() {
@@ -56,6 +57,8 @@ async function handleAddPlayer(event) {
         console.log("Server Response:", data);
 
         if (data.status === "success") {
+            // Re-fetch player data after adding a new player
+            playerRatings = await fetchPlayersFromSheet();
             updatePlayerList();
             playerNameInput.value = '';
             playerRatingInput.value = '1200';
