@@ -4,12 +4,12 @@ import { getFirestore, collection, addDoc, getDocs, setDoc, doc, getDoc } from '
 
 // Firebase configuration (replace with your actual Firebase config)
 const firebaseConfig = {
-    apiKey: 'YOUR_API_KEY',
-    authDomain: 'YOUR_AUTH_DOMAIN',
-    projectId: 'YOUR_PROJECT_ID',
-    storageBucket: 'YOUR_STORAGE_BUCKET',
-    messagingSenderId: 'YOUR_MESSAGING_SENDER_ID',
-    appId: 'YOUR_APP_ID'
+  apiKey: "AIzaSyD1nnM8PbImTnRPdr6O2Nkcsm_6k22XHBo",
+  authDomain: "foosball-elo-53e01.firebaseapp.com",
+  projectId: "foosball-elo-53e01",
+  storageBucket: "foosball-elo-53e01.firebasestorage.app",
+  messagingSenderId: "520975826180",
+  appId: "1:520975826180:web:58daa9f0fc6327a0036451"
 };
 
 // Initialize Firebase
