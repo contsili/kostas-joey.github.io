@@ -7,7 +7,7 @@ const playerRatingInput = document.getElementById('player-rating');
 const teamMatchCheckbox = document.getElementById('team-match');
 const logMatchButton = document.getElementById('log-match');
 
-const scriptURL = "https://script.google.com/macros/s/AKfycbyuLTp1-S6CvjQDnB4UAUS7Y2lwL2kZUEME-3nx5MWzcaOurY1cMKfSeBZG0Jcu8HJt/exec"; // Replace with your Google Apps Script URL
+const scriptURL = "https://script.google.com/macros/s/AKfycby8jLXYjWKykMSziMnCPZbDenNdCd2e2MxEYrgRRrD0jEQlU0oFPwjl8ASOMIb-3ONx/exec"; // Replace with your Google Apps Script URL
 let playerRatings = {};
 
 async function init() {
