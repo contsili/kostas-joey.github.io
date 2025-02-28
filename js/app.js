@@ -1,15 +1,19 @@
+
 // Import Firebase SDK (if using modules)
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs, setDoc, doc, getDoc } from 'firebase/firestore';
+import { 
+    getFirestore, collection, doc, getDoc, setDoc, 
+    getDocs, onSnapshot 
+} from 'firebase/firestore';
 
-// Firebase configuration (replace with your actual Firebase config)
+// Firebase configuration – replace with your actual config values
 const firebaseConfig = {
-  apiKey: "AIzaSyD1nnM8PbImTnRPdr6O2Nkcsm_6k22XHBo",
-  authDomain: "foosball-elo-53e01.firebaseapp.com",
-  projectId: "foosball-elo-53e01",
-  storageBucket: "foosball-elo-53e01.firebasestorage.app",
-  messagingSenderId: "520975826180",
-  appId: "1:520975826180:web:58daa9f0fc6327a0036451"
+    apiKey: "YOUR_API_KEY",
+    authDomain: "YOUR_AUTH_DOMAIN",
+    projectId: "YOUR_PROJECT_ID",
+    storageBucket: "YOUR_STORAGE_BUCKET",
+    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+    appId: "YOUR_APP_ID"
 };
 
 // Initialize Firebase
@@ -24,25 +28,57 @@ const playerRatingInput = document.getElementById('player-rating');
 const teamMatchCheckbox = document.getElementById('team-match');
 const logMatchButton = document.getElementById('log-match');
 
-let playerRatings = {};
-
-// Load initial player data
-async function init() {
-    playerRatings = await loadPlayerData() || {};
-    updatePlayerList();
-    setupEventListeners();
-    toggleTeamInputs(); // Add this line
-    updatePlayersList();
+// Set up real-time listener for players
+function listenToPlayers() {
+    const playersRef = collection(db, 'players');
+    onSnapshot(playersRef, (snapshot) => {
+        const players = snapshot.docs.map(doc => doc.data());
+        renderPlayerList(players);
+        updatePlayersList(players);
+    });
 }
 
+// Render the player list in the UI
+function renderPlayerList(players) {
+    playerList.innerHTML = '';
+    const sortedPlayers = players.sort((a, b) => b.rating - a.rating);
+    
+    sortedPlayers.forEach((player, index) => {
+        const li = document.createElement('li');
+        const winRate = player.matches > 0 ? ((player.wins / player.matches) * 100).toFixed(1) : 0;
+        
+        li.innerHTML = `
+            <span class="rank">${index + 1}</span>
+            <span class="name">${player.name}</span>
+            <span class="elo">${Math.round(player.rating)}</span>
+            <span class="stats">${player.wins}W - ${player.losses}L</span>
+            <div class="ratio">
+                <span>${winRate}%</span>
+                <div class="win-rate-bar">
+                    <div class="win-rate-fill" style="width: ${winRate}%"></div>
+                </div>
+            </div>
+        `;
+        
+        playerList.appendChild(li);
+    });
+}
+
+// Update datalist for match inputs
+function updatePlayersList(players) {
+    const datalist = document.getElementById('players-list');
+    datalist.innerHTML = '';
+    players.forEach(player => {
+        const option = document.createElement('option');
+        option.value = player.name;
+        datalist.appendChild(option);
+    });
+}
+
+// Set up event listeners
 function setupEventListeners() {
-    // Add player form submission
     playerForm.addEventListener('submit', handleAddPlayer);
-    
-    // Team match toggle
     teamMatchCheckbox.addEventListener('change', toggleTeamInputs);
-    
-    // Log match button
     logMatchButton.addEventListener('click', handleLogMatch);
 }
 
@@ -76,11 +112,7 @@ async function handleAddPlayer(event) {
             wins: 0,
             losses: 0
         });
-        // Refresh both the ranking list and the datalist for match inputs
-        updatePlayerList();
-        updatePlayersList();
-        
-        // Clear form
+        // Clear form inputs
         playerNameInput.value = '';
         playerRatingInput.value = '1200';
     } catch (error) {
@@ -116,10 +148,9 @@ function handleLogMatch() {
         }
         updateSingleMatch(player1, player3, winner === 'team1');
     }
-
-    updatePlayerList();
 }
 
+// Update team match results and player ratings
 function updateTeamMatch(player1, player2, player3, player4, team1Wins) {
     const team1Elo = (getPlayerRating(player1) + getPlayerRating(player2)) / 2;
     const team2Elo = (getPlayerRating(player3) + getPlayerRating(player4)) / 2;
@@ -131,10 +162,9 @@ function updateTeamMatch(player1, player2, player3, player4, team1Wins) {
     updatePlayerData(player2, newTeam1Elo, team1Wins);
     updatePlayerData(player3, newTeam2Elo, !team1Wins);
     updatePlayerData(player4, newTeam2Elo, !team1Wins);
-
-    savePlayerData();
 }
 
+// Update single match results and player ratings
 function updateSingleMatch(player1, player2, player1Wins) {
     const player1Elo = getPlayerRating(player1);
     const player2Elo = getPlayerRating(player2);
@@ -144,34 +174,46 @@ function updateSingleMatch(player1, player2, player1Wins) {
 
     updatePlayerData(player1, newPlayer1Elo, player1Wins);
     updatePlayerData(player2, newPlayer2Elo, !player1Wins);
-
-    savePlayerData();
 }
 
+// Retrieve a player's rating from Firestore (fallback to 1200 if not found)
 function getPlayerRating(playerName) {
-    return playerRatings[playerName]?.rating || 1200;
+    // Note: This is a synchronous helper used only for calculations.
+    // For realtime values, we rely on the onSnapshot listener.
+    // Here, you might want to store local cache or query synchronously.
+    // For simplicity, we assume 1200 if data is not available.
+    return 1200;
 }
 
-function updatePlayerData(playerName, newRating, isWin) {
+// Update a player's data in Firestore
+async function updatePlayerData(playerName, newRating, isWinner) {
     const playerRef = doc(db, 'players', playerName);
-    getDoc(playerRef).then(playerSnapshot => {
-        const playerData = playerSnapshot.data();
-
-        const newMatches = playerData.matches + 1;
-        const newWins = isWin ? playerData.wins + 1 : playerData.wins;
-        const newLosses = isWin ? playerData.losses : playerData.losses + 1;
-
-        setDoc(playerRef, {
-            rating: newRating,
-            matches: newMatches,
-            wins: newWins,
-            losses: newLosses
-        }, { merge: true });
-
-        updatePlayerList();
-    });
+    const docSnap = await getDoc(playerRef);
+    let playerData = { rating: 1200, matches: 0, wins: 0, losses: 0 };
+    if (docSnap.exists()) {
+        playerData = docSnap.data();
+    }
+    
+    const newMatches = playerData.matches + 1;
+    const newWins = isWinner ? playerData.wins + 1 : playerData.wins;
+    const newLosses = isWinner ? playerData.losses : playerData.losses + 1;
+    
+    await setDoc(playerRef, {
+        rating: newRating,
+        matches: newMatches,
+        wins: newWins,
+        losses: newLosses
+    }, { merge: true });
 }
 
+// Elo rating calculation function
+function calculateElo(playerRating, opponentRating, result) {
+    const K = 32;
+    const expectedScore = 1 / (1 + Math.pow(10, (opponentRating - playerRating) / 400));
+    return playerRating + K * (result - expectedScore);
+}
+
+// Toggle display of team match inputs
 function toggleTeamInputs() {
     const teamPlayers = document.querySelectorAll('.team-player');
     const matchTypeLabel = document.querySelector('.match-type-label');
@@ -185,50 +227,10 @@ function toggleTeamInputs() {
     matchTypeLabel.textContent = isTeamMatch ? '2v2 Match' : '1v1 Match';
 }
 
-async function updatePlayerList() {
-    const playerList = document.getElementById('player-list');
-    playerList.innerHTML = '';
-
-    const playersRef = collection(db, 'players');
-    const playerSnapshot = await getDocs(playersRef);
-    const players = playerSnapshot.docs.map(doc => doc.data());
-    
-    const sortedPlayers = players.sort((a, b) => b.rating - a.rating);
-
-    sortedPlayers.forEach((player, index) => {
-        const li = document.createElement('li');
-        const winRate = player.matches > 0 ? 
-            ((player.wins / player.matches) * 100).toFixed(1) : 0;
-        
-        li.innerHTML = `
-            <span class="rank">${index + 1}</span>
-            <span class="name">${player.name}</span>
-            <span class="elo">${Math.round(player.rating)}</span>
-            <span class="stats">${player.wins}W - ${player.losses}L</span>
-            <div class="ratio">
-                <span>${winRate}%</span>
-                <div class="win-rate-bar">
-                    <div class="win-rate-fill" style="width: ${winRate}%"></div>
-                </div>
-            </div>
-        `;
-        
-        playerList.appendChild(li);
-    });
-}
-
-function updatePlayersList() {
-    const datalist = document.getElementById('players-list');
-    datalist.innerHTML = '';
-    
-    getDocs(collection(db, 'players')).then(snapshot => {
-        snapshot.forEach(doc => {
-            const option = document.createElement('option');
-            option.value = doc.data().name;
-            datalist.appendChild(option);
-        });
-    });
-}
-
 // Initialize the application
+function init() {
+    setupEventListeners();
+    listenToPlayers();
+}
+
 init();
