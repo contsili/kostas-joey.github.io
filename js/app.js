@@ -76,7 +76,9 @@ async function handleAddPlayer(event) {
             wins: 0,
             losses: 0
         });
+        // Refresh both the ranking list and the datalist for match inputs
         updatePlayerList();
+        updatePlayersList();
         
         // Clear form
         playerNameInput.value = '';
