@@ -7,7 +7,7 @@ const playerRatingInput = document.getElementById('player-rating');
 const teamMatchCheckbox = document.getElementById('team-match');
 const logMatchButton = document.getElementById('log-match');
 
-const scriptURL = "https://script.google.com/macros/s/AKfycbwkrpGFL8dSKyB4flA9dadY0J3Rjhbt7NDF2XpEjdL-RSXA5xpzbQu-mJHEcqXJYnI/exec"; // Replace with your Google Apps Script URL
+const scriptURL = "https://script.google.com/macros/s/AKfycbyigteDCxu-lUS6fBINLli-o-1l5ubRLebF7E72gowwDG9vKte3QuyNoGmkcPE9qU2W/exec"; // Replace with your Google Apps Script URL
 
 let playerRatings = {};
 
@@ -74,6 +74,7 @@ async function fetchPlayersFromSheet() {
     try {
         const response = await fetch(scriptURL);
         const data = await response.json();
+        console.log("Fetched Players:", data); // Debugging line
         let players = {};
         data.forEach(player => {
             players[player.playerName] = { rating: parseInt(player.rating), matches: player.matches, wins: player.wins, losses: player.losses };
