@@ -2,7 +2,6 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, set, get, update } from "firebase/database";
 
-// Your Firebase config (replace with actual values from Firebase Console)
 const firebaseConfig = {
   apiKey: "AIzaSyD1nnM8PbImTnRPdr6O2Nkcsm_6k22XHBo",
   authDomain: "foosball-elo-53e01.firebaseapp.com",
