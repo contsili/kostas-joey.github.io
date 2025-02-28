@@ -42,14 +42,26 @@ async function handleAddPlayer(event) {
     playerRatings[playerName] = { rating: playerRating, matches: 0, wins: 0, losses: 0 };
     
     try {
-        await fetch(scriptURL, {
+        const response = await fetch(scriptURL, {
             method: "POST",
-            body: JSON.stringify({ name: playerName, rating: playerRating }),
+            body: JSON.stringify({
+                action: "addPlayer",  // 👈 FIXED (this tells the script what to do)
+                playerName: playerName,
+                rating: playerRating
+            }),
             headers: { "Content-Type": "application/json" }
         });
-        updatePlayerList();
-        playerNameInput.value = '';
-        playerRatingInput.value = '1200';
+
+        const data = await response.json();
+        console.log("Server Response:", data);  // Debugging line
+
+        if (data.status === "success") {
+            updatePlayerList();
+            playerNameInput.value = '';
+            playerRatingInput.value = '1200';
+        } else {
+            alert("Error: " + data.message);
+        }
     } catch (error) {
         console.error('Failed to save player:', error);
         alert('Failed to add player');
