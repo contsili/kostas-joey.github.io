@@ -2,13 +2,10 @@
   "name": "foosball-elo-web",
   "version": "1.0.0",
   "description": "Foosball Elo Rating System",
-  "main": "src/js/app.js",
   "scripts": {
     "start": "http-server src -o -c-1"
   },
-  "dependencies": {
-    "firebase": "^10.8.0"
-  },
+  "dependencies": {},
   "devDependencies": {
     "http-server": "^14.1.1"
   },
