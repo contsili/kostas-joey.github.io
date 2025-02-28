@@ -36,23 +36,37 @@ function getPlayerRatings() {
     return playerRatings;
 }
 
-async function loadPlayerData() {
+// Fetch player data from Google Sheets
+async function fetchPlayerDataFromSheet() {
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyuLTp1-S6CvjQDnB4UAUS7Y2lwL2kZUEME-3nx5MWzcaOurY1cMKfSeBZG0Jcu8HJt/exec"; // Replace with your Google Apps Script URL
     try {
-        const data = localStorage.getItem('foosballPlayerData');
-        return data ? JSON.parse(data) : {};
+        const response = await fetch(scriptURL);
+        const data = await response.json();
+        let players = {};
+        data.forEach(player => {
+            players[player.playerName] = { rating: parseInt(player.rating), matches: player.matches, wins: player.wins, losses: player.losses };
+        });
+        return players;
     } catch (error) {
-        console.error('Error loading player data:', error);
+        console.error('Error fetching player data:', error);
         return {};
     }
 }
 
-async function savePlayerData(playerData) {
+// Update player data in Google Sheets
+async function savePlayerDataToSheet(playerData) {
+    const scriptURL = "https://script.google.com/macros/s/AKfycbyuLTp1-S6CvjQDnB4UAUS7Y2lwL2kZUEME-3nx5MWzcaOurY1cMKfSeBZG0Jcu8HJt/exec"; // Replace with your Google Apps Script URL
     try {
-        localStorage.setItem('foosballPlayerData', JSON.stringify(playerData));
-        return true;
+        await fetch(scriptURL, {
+            method: "POST",
+            body: JSON.stringify({
+                action: "updatePlayer",  // This should match the action in your Google Apps Script
+                playerData: playerData
+            }),
+            headers: { "Content-Type": "application/json" }
+        });
     } catch (error) {
-        console.error('Error saving player data:', error);
-        return false;
+        console.error('Error saving player data to sheet:', error);
     }
 }
 
@@ -62,6 +76,6 @@ export {
     updatePlayerData,
     averageTeamElo,
     getPlayerRatings,
-    loadPlayerData,
-    savePlayerData
+    fetchPlayerDataFromSheet,
+    savePlayerDataToSheet
 };
