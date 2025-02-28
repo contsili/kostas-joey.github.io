@@ -45,7 +45,7 @@ async function handleAddPlayer(event) {
         const response = await fetch(scriptURL, {
             method: "POST",
             body: JSON.stringify({
-                action: "addPlayer",  // 👈 FIXED (this tells the script what to do)
+                action: "addPlayer",
                 playerName: playerName,
                 rating: playerRating
             }),
@@ -53,7 +53,7 @@ async function handleAddPlayer(event) {
         });
 
         const data = await response.json();
-        console.log("Server Response:", data);  // Debugging line
+        console.log("Server Response:", data);
 
         if (data.status === "success") {
             updatePlayerList();
@@ -73,8 +73,8 @@ async function fetchPlayersFromSheet() {
         const response = await fetch(scriptURL);
         const data = await response.json();
         let players = {};
-        data.slice(1).forEach(row => {
-            players[row[1]] = { rating: parseInt(row[2]), matches: 0, wins: 0, losses: 0 };
+        data.forEach(player => {
+            players[player.playerName] = { rating: parseInt(player.rating), matches: player.matches, wins: player.wins, losses: player.losses };
         });
         return players;
     } catch (error) {
