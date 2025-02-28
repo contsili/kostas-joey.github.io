@@ -57,8 +57,7 @@ async function handleAddPlayer(event) {
         console.log("Server Response:", data);
 
         if (data.status === "success") {
-            // Re-fetch player data after adding a new player
-            playerRatings = await fetchPlayersFromSheet();
+            // Successfully added player, update the list
             updatePlayerList();
             playerNameInput.value = '';
             playerRatingInput.value = '1200';
