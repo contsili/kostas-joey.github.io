@@ -1,19 +1,5 @@
-
-
+import { db, ref, set, get, update } from './firebase-config.js';
 import { savePlayersToLocal, loadPlayersFromLocal } from '../data/players.js';
-
-const firebaseConfig = {
-  apiKey: "AIzaSyD1nnM8PbImTnRPdr6O2Nkcsm_6k22XHBo",
-  authDomain: "foosball-elo-53e01.firebaseapp.com",
-  projectId: "foosball-elo-53e01",
-  storageBucket: "foosball-elo-53e01.firebasestorage.app",
-  messagingSenderId: "520975826180",
-  appId: "1:520975826180:web:58daa9f0fc6327a0036451"
-};
-
-// Initialize Firebase
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
 
 // Select DOM elements
 const playerList = document.getElementById('player-list');
@@ -35,9 +21,11 @@ async function loadPlayers() {
     let firebasePlayers = {};
 
     try {
-        const snapshot = await db.collection("players").get();
-        snapshot.docs.forEach(doc => {
-            firebasePlayers[doc.id] = doc.data();
+        const snapshot = await get(ref(db, 'players'));
+        snapshot.forEach(childSnapshot => {
+            const key = childSnapshot.key;
+            const data = childSnapshot.val();
+            firebasePlayers[key] = data;
         });
     } catch (error) {
         console.error("Error fetching players from Firebase:", error);
@@ -49,7 +37,7 @@ async function loadPlayers() {
 // Add a new player
 async function addPlayer(event) {
     event.preventDefault();
-    
+
     const playerName = playerNameInput.value.trim();
     const playerRating = parseInt(playerRatingInput.value) || 1200;
 
@@ -72,7 +60,7 @@ async function addPlayer(event) {
 
     try {
         // Save to Firebase
-        await db.collection("players").doc(playerName).set(newPlayer);
+        await set(ref(db, 'players/' + playerName), newPlayer);
         console.log("Player saved to Firebase!");
     } catch (error) {
         console.error("Error saving to Firebase:", error);
