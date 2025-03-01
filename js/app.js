@@ -36,7 +36,7 @@ async function loadPlayers() {
 
 // Add a new player
 async function addPlayer(event) {
-    event.preventDefault();
+    event.preventDefault();  // Prevent default form submission
 
     const playerName = playerNameInput.value.trim();
     const playerRating = parseInt(playerRatingInput.value) || 1200;
@@ -66,11 +66,18 @@ async function addPlayer(event) {
         console.error("Error saving to Firebase:", error);
     }
 
+    // Clear the input fields
     playerNameInput.value = '';
     playerRatingInput.value = '1200';
+    
+    // Update the player list
     updatePlayerList();
 }
 
+// Event Listeners
+playerForm.addEventListener('submit', addPlayer);
+
+init();
 // Update player rankings UI
 function updatePlayerList() {
     playerList.innerHTML = '';
