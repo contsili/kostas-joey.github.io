@@ -1,22 +1,15 @@
 
-// Import Firebase SDK (if using modules)
-import { initializeApp } from 'firebase/app';
-import { 
-    getFirestore, collection, doc, getDoc, setDoc, 
-    getDocs, onSnapshot 
-} from 'firebase/firestore';
 
-// Firebase configuration – replace with your actual config values
+import { savePlayersToLocal, loadPlayersFromLocal } from '../data/players.js';
+
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyD1nnM8PbImTnRPdr6O2Nkcsm_6k22XHBo",
+  authDomain: "foosball-elo-53e01.firebaseapp.com",
+  projectId: "foosball-elo-53e01",
+  storageBucket: "foosball-elo-53e01.firebasestorage.app",
+  messagingSenderId: "520975826180",
+  appId: "1:520975826180:web:58daa9f0fc6327a0036451"
 };
-
-import { players, savePlayersToLocal } from '../data/players.js';
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig);
@@ -28,29 +21,29 @@ const playerForm = document.getElementById('player-form');
 const playerNameInput = document.getElementById('player-name');
 const playerRatingInput = document.getElementById('player-rating');
 
-// Initialize player data
+let players = {}; // Store player data
+
+// Initialize app
 async function init() {
-    await fetchPlayers();
+    players = await loadPlayers();  // Load from Firebase & local file
     updatePlayerList();
 }
 
-// Fetch players from Firebase and merge with local storage
-async function fetchPlayers() {
+// Load player data from Firebase & local `players.json`
+async function loadPlayers() {
+    let localPlayers = await loadPlayersFromLocal();
+    let firebasePlayers = {};
+
     try {
         const snapshot = await db.collection("players").get();
-        const firebasePlayers = {};
-        
         snapshot.docs.forEach(doc => {
             firebasePlayers[doc.id] = doc.data();
         });
-
-        // Merge local and Firebase data
-        Object.assign(players, firebasePlayers);
-        savePlayersToLocal(players);
-        updatePlayerList();
     } catch (error) {
-        console.error("Error fetching players:", error);
+        console.error("Error fetching players from Firebase:", error);
     }
+
+    return { ...localPlayers, ...firebasePlayers }; // Merge both sources
 }
 
 // Add a new player
@@ -90,7 +83,7 @@ async function addPlayer(event) {
     updatePlayerList();
 }
 
-// Update player rankings list in the UI
+// Update player rankings UI
 function updatePlayerList() {
     playerList.innerHTML = '';
 
