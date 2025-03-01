@@ -1,4 +1,5 @@
-import { db, ref, set, get, update } from './firebase-config.js';
+import { db } from './firebase-config.js';
+import { collection, getDocs, setDoc, doc } from "firebase/firestore";
 import { savePlayersToLocal, loadPlayersFromLocal } from '../data/players.js';
 
 // Select DOM elements
@@ -21,11 +22,9 @@ async function loadPlayers() {
     let firebasePlayers = {};
 
     try {
-        const snapshot = await get(ref(db, 'players'));
-        snapshot.forEach(childSnapshot => {
-            const key = childSnapshot.key;
-            const data = childSnapshot.val();
-            firebasePlayers[key] = data;
+        const querySnapshot = await getDocs(collection(db, 'players'));
+        querySnapshot.forEach((doc) => {
+            firebasePlayers[doc.id] = doc.data();
         });
     } catch (error) {
         console.error("Error fetching players from Firebase:", error);
@@ -36,7 +35,7 @@ async function loadPlayers() {
 
 // Add a new player
 async function addPlayer(event) {
-    event.preventDefault();
+    event.preventDefault();  // Prevent default form submission
 
     const playerName = playerNameInput.value.trim();
     const playerRating = parseInt(playerRatingInput.value) || 1200;
@@ -60,14 +59,17 @@ async function addPlayer(event) {
 
     try {
         // Save to Firebase
-        await set(ref(db, 'players/' + playerName), newPlayer);
+        await setDoc(doc(db, 'players', playerName), newPlayer);
         console.log("Player saved to Firebase!");
     } catch (error) {
         console.error("Error saving to Firebase:", error);
     }
 
+    // Clear the input fields
     playerNameInput.value = '';
     playerRatingInput.value = '1200';
+    
+    // Update the player list
     updatePlayerList();
 }
 
@@ -100,5 +102,4 @@ function updatePlayerList() {
 // Event Listeners
 playerForm.addEventListener('submit', addPlayer);
 
-// Initialize the app
 init();
