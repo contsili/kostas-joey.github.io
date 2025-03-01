@@ -1,4 +1,5 @@
-import { db, ref, set, get, update } from './firebase-config.js';
+import { db } from './firebase-config.js';
+import { collection, getDocs, setDoc, doc, getDoc } from "firebase/firestore";
 
 // Elo rating calculation function
 function calculateElo(playerRating, opponentRating, result) {
@@ -10,11 +11,11 @@ function calculateElo(playerRating, opponentRating, result) {
 // Updates a player's data in Firebase
 async function updatePlayerData(playerName, newRating, isWinner) {
     try {
-        const playerRef = ref(db, 'players/' + playerName);
-        const snapshot = await get(playerRef);
+        const playerRef = doc(db, 'players', playerName);
+        const docSnap = await getDoc(playerRef);
         let playerData;
-        if (snapshot.exists()) {
-            playerData = snapshot.val();
+        if (docSnap.exists()) {
+            playerData = docSnap.data();
         } else {
             // If the player does not exist, initialize their data
             playerData = { rating: 1200, matches: 0, wins: 0, losses: 0 };
@@ -23,7 +24,7 @@ async function updatePlayerData(playerName, newRating, isWinner) {
         const newWins = isWinner ? playerData.wins + 1 : playerData.wins;
         const newLosses = isWinner ? playerData.losses : playerData.losses + 1;
 
-        await set(playerRef, {
+        await setDoc(playerRef, {
             rating: newRating,
             matches: newMatches,
             wins: newWins,
@@ -42,13 +43,10 @@ function averageTeamElo(player1Rating, player2Rating) {
 // Returns an object with player names as keys.
 async function loadPlayerData() {
     try {
-        const playersRef = ref(db, 'players');
-        const snapshot = await get(playersRef);
+        const querySnapshot = await getDocs(collection(db, 'players'));
         let data = {};
-        snapshot.forEach(childSnapshot => {
-            const key = childSnapshot.key;
-            const val = childSnapshot.val();
-            data[key] = val;
+        querySnapshot.forEach((doc) => {
+            data[doc.id] = doc.data();
         });
         return data;
     } catch (error) {
@@ -61,7 +59,7 @@ async function loadPlayerData() {
 async function savePlayerData(playerData) {
     try {
         const promises = Object.entries(playerData).map(([playerName, data]) =>
-            set(ref(db, 'players/' + playerName), data, { merge: true })
+            setDoc(doc(db, 'players', playerName), data, { merge: true })
         );
         await Promise.all(promises);
         return true;
