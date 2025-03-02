@@ -54,25 +54,54 @@ function getPlayerRatings() {
     return playerRatings;
 }
 
+// async function loadPlayerData() {
+//     try {
+//         const data = localStorage.getItem('foosballPlayerData');
+//         return data ? JSON.parse(data) : {};
+//     } catch (error) {
+//         console.error('Error loading player data:', error);
+//         return {};
+//     }
+// }
+
 async function loadPlayerData() {
     try {
-        const data = localStorage.getItem('foosballPlayerData');
-        return data ? JSON.parse(data) : {};
+        const querySnapshot = await getDocs(collection(db, "players"));
+        let playerData = {};
+        querySnapshot.forEach((doc) => {
+            playerData[doc.id] = doc.data();
+        });
+        console.log("Player data loaded from Firebase:", playerData);
+        return playerData;
     } catch (error) {
-        console.error('Error loading player data:', error);
+        console.error("Error loading player data:", error);
         return {};
     }
 }
 
+
+// async function savePlayerData(playerData) {
+//     try {
+//         localStorage.setItem('foosballPlayerData', JSON.stringify(playerData));
+//         return true;
+//     } catch (error) {
+//         console.error('Error saving player data:', error);
+//         return false;
+//     }
+// }
 async function savePlayerData(playerData) {
     try {
-        localStorage.setItem('foosballPlayerData', JSON.stringify(playerData));
+        for (const [playerName, data] of Object.entries(playerData)) {
+            await setDoc(doc(db, "players", playerName), data);
+        }
+        console.log("Player data saved to Firebase.");
         return true;
     } catch (error) {
-        console.error('Error saving player data:', error);
+        console.error("Error saving player data:", error);
         return false;
     }
 }
+
 
 // Export all functions
 export {
